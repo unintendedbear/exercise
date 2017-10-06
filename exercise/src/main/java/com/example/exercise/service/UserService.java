@@ -1,0 +1,123 @@
+package com.example.exercise.service;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+
+import org.json.JSONException;
+import org.json.simple.parser.ParseException;
+
+import com.example.exercise.model.AgeGroup;
+import com.example.exercise.model.User;
+
+public class UserService {
+	
+	private static final String userKey = "STX-COMMUNE";
+	
+	// Create a loading cache here and load the user in the list if its empty. Use the key userKey	
+	// Resource https://github.com/google/guava/wiki/CachesExplained
+	//TODO: Implement a guava Loading cache to load the user list from FIle and store it in the cache
+
+	/**
+	 * Service to return a list of user 
+	 * @return
+	 * @throws IOException
+	 * @throws ParseException
+	 * @throws JSONException
+	 * @throws ExecutionException 
+	 */
+	public static List<User> loadUser() throws IOException, ParseException, JSONException, ExecutionException{
+		// TODO: Try to use the Guava Loading cache 
+		return new ArrayList<User>();
+	}
+	
+	/**
+	 * This method should be called by loading cache to load the user from file
+	 * @return
+	 * @throws JSONException
+	 * @throws IOException
+	 * @throws ParseException
+	 */
+	public static List<User> loadUserIfCacheMiss() throws JSONException, IOException, ParseException{
+		return new ArrayList<User>();
+	}
+	
+	/**
+	 * Service to return a list of Sorted user 
+	 * @return
+	 * @throws IOException
+	 * @throws ParseException
+	 * @throws JSONException
+	 */
+	public static List<User> loadSortedUser() throws IOException, ParseException, JSONException{
+		
+		// Step1: Load the users list
+		
+		// Step2: Sort the user list 
+
+		// Write an algorithm here to sort the list of users 
+		// First based on the first name and then last name
+		// Eg. if the users are John Doe, John Wayne and Clint Eastwood, the list should be 
+		// 1.Clint Eastwood, 
+		// 2. John Doe
+		// 3. John Wayne 
+		
+		return new ArrayList<User>();
+	}
+	
+	/**
+	 * Exercise 2: Load list of user and find the one with email supplied
+	 * @param email
+	 * @return
+	 * @throws ParseException 
+	 * @throws IOException 
+	 * @throws JSONException 
+	 */
+	public static User getUserByEmail(final String email) throws JSONException, IOException, ParseException {
+		// Step1: Load the users
+		// TODO: write the code to load the users 
+	
+		// Step2. Filter the user based on email address, if more than one return the oldest
+		// TODO:_ Filter using email 
+		return null;
+	}
+	
+	/**
+	 * Method to group the users in Age Group
+	 * 
+	 * @return
+	 */
+	public static Map<AgeGroup, Integer> getUserCountByAgeGroup(){
+		// Step1: Load the users
+		// TODO: write code to load the users
+
+		Integer child = 0;
+		Integer youth = 0;
+		Integer adult = 0;
+		Integer senior = 0;
+		
+		// Step2: Fill in the count comparing birth date with current date 
+		// TODO: update the value of counter for each age group
+		
+	
+		final Map<AgeGroup, Integer> userGroup = new HashMap<>();
+		userGroup.put(AgeGroup.CHILD, child);
+		userGroup.put(AgeGroup.YOUTH, youth);
+		userGroup.put(AgeGroup.ADULT, adult);
+		userGroup.put(AgeGroup.SENIOR, senior);
+		return userGroup;
+	}
+	
+	// Read the file "user.json" and convert the JSON object into Java object
+	private static final List<User> getUserListFromFile() throws IOException, ParseException, JSONException{
+		// Step1: Read the user.json file 
+		
+		// Step2: Convert the user JSON string to java object
+		// Hint: You can look at ObjectMapper provided by Jackson library
+		
+		return new ArrayList<User>();
+	}
+}

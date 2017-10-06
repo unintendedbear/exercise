@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Spring Core Online Tutorial - List users</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+
+    <link href="http://cdn.jsdelivr.net/webjars/bootstrap/3.3.4/css/bootstrap.min.css"
+          th:href="@{/webjars/bootstrap/3.3.5/css/bootstrap.min.css}"
+          rel="stylesheet" media="screen"/>
+
+    <script src="http://cdn.jsdelivr.net/webjars/jquery/2.1.4/jquery.min.js"
+            th:src="@{/webjars/jquery/2.1.4/jquery.min.js}"></script>
+
+    <link href="../css/spring-core.css"
+          th:href="@{css/spring-core.css}" rel="stylesheet" media="screen"/>
+</head>
+<body>
+<div class="container">
+       <h2>Residents of Lausanne Commune By Age group</h2>
+       <ul>
+       	<li><h3 th:text="'Senior:' + ${SENIOR}"></h3></li>
+       	<li><h3 th:text="'Adult:' + ${ADULT}"></h3></li>
+       	<li><h3 th:text="'Youth:' + ${YOUTH}"></h3></li>
+       	<li><h3 th:text="'Child:' + ${CHILD}"></h3></li>
+       </ul>
+</div>
+
+</body>
+</html>
