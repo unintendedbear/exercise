@@ -11,6 +11,7 @@ import org.json.JSONException;
 import org.json.simple.parser.ParseException;
 
 import com.example.exercise.model.AgeGroup;
+import com.example.exercise.model.GroupResult;
 import com.example.exercise.model.User;
 
 public class UserService {
@@ -52,7 +53,7 @@ public class UserService {
 	 * @throws ParseException
 	 * @throws JSONException
 	 */
-	public static List<User> loadSortedUser() throws IOException, ParseException, JSONException{
+	public static List<GroupResult> loadSortedUserGroup() throws IOException, ParseException, JSONException{
 		
 		// Step1: Load the users list
 		
@@ -65,7 +66,7 @@ public class UserService {
 		// 2. John Doe
 		// 3. John Wayne 
 		
-		return new ArrayList<User>();
+		return new ArrayList<>();
 	}
 	
 	/**
@@ -85,31 +86,6 @@ public class UserService {
 		return null;
 	}
 	
-	/**
-	 * Method to group the users in Age Group
-	 * 
-	 * @return
-	 */
-	public static Map<AgeGroup, Integer> getUserCountByAgeGroup(){
-		// Step1: Load the users
-		// TODO: write code to load the users
-
-		Integer child = 0;
-		Integer youth = 0;
-		Integer adult = 0;
-		Integer senior = 0;
-		
-		// Step2: Fill in the count comparing birth date with current date 
-		// TODO: update the value of counter for each age group
-		
-	
-		final Map<AgeGroup, Integer> userGroup = new HashMap<>();
-		userGroup.put(AgeGroup.CHILD, child);
-		userGroup.put(AgeGroup.YOUTH, youth);
-		userGroup.put(AgeGroup.ADULT, adult);
-		userGroup.put(AgeGroup.SENIOR, senior);
-		return userGroup;
-	}
 	
 	// Read the file "user.json" and convert the JSON object into Java object
 	private static final List<User> getUserListFromFile() throws IOException, ParseException, JSONException{
