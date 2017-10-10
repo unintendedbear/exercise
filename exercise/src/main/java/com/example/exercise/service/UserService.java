@@ -1,13 +1,21 @@
 package com.example.exercise.service;
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import org.json.JSONException;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import com.example.exercise.model.AgeGroup;
@@ -31,8 +39,41 @@ public class UserService {
 	 * @throws ExecutionException 
 	 */
 	public static List<User> loadUser() throws IOException, ParseException, JSONException, ExecutionException{
+		
+		List<User> userList = new ArrayList<User>();
+		
+		JSONParser parser = new JSONParser();
+
+        try {
+
+            Object obj = parser.parse(new FileReader("user.json"));
+
+            JSONArray userJSONArray = (JSONArray) obj;
+            Iterator<?> JSONIterator = userJSONArray.iterator();
+            while (JSONIterator.hasNext()) {
+				JSONObject currentUser = (JSONObject) JSONIterator.next();
+				User user = new User();
+				user.setId(currentUser.get("id").toString());
+				user.setFirstname(currentUser.get("firstname").toString());
+				user.setLastname(currentUser.get("lastname").toString());
+				user.setEmail(currentUser.get("email").toString());
+				user.setMobile(currentUser.get("mobile").toString());
+				user.setTown(currentUser.get("town").toString());
+				Date dOB = new Date((Long)currentUser.get("dateOfBirth")*1000);
+				user.setDateOfBirth(dOB);
+				userList.add(user);
+			}
+            
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
 		// TODO: Try to use the Guava Loading cache 
-		return new ArrayList<User>();
+		return userList;
 	}
 	
 	/**
