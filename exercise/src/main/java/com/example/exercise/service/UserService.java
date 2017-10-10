@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import org.json.JSONException;
 import org.json.simple.JSONArray;
@@ -21,6 +22,10 @@ import org.json.simple.parser.ParseException;
 import com.example.exercise.model.AgeGroup;
 import com.example.exercise.model.GroupResult;
 import com.example.exercise.model.User;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.graph.Graph;
 
 public class UserService {
 	
@@ -42,39 +47,85 @@ public class UserService {
 		
 		List<User> userList = new ArrayList<User>();
 		
-		JSONParser parser = new JSONParser();
+		LoadingCache<String, User> usersCache = 
+		         CacheBuilder.newBuilder()
+		         .maximumSize(100)
+		         .expireAfterAccess(30, TimeUnit.MINUTES)
+		         .build(new CacheLoader<String, User>() {
+		            
+		            @Override
+		            public User load(String userKey) throws Exception {
+		               return getFromDatabase(userKey, getJSONIterator());
+		            } 
+		         });
 
-        try {
+		      try {
+		    	  List<String> userIDs = getUserIDs(getJSONIterator());
+		    	  Iterator<String> idIterator = userIDs.iterator();
+		    	  while(idIterator.hasNext()) {
+		    		  String id = idIterator.next();
+		    		  userList.add(usersCache.get(id));
+		    	  }
+		         
 
-            Object obj = parser.parse(new FileReader("user.json"));
+		      } catch (ExecutionException e) {
+		         e.printStackTrace();
+		      }
 
-            JSONArray userJSONArray = (JSONArray) obj;
-            Iterator<?> JSONIterator = userJSONArray.iterator();
-            while (JSONIterator.hasNext()) {
-				JSONObject currentUser = (JSONObject) JSONIterator.next();
-				User user = new User();
-				user.setId(currentUser.get("id").toString());
-				user.setFirstname(currentUser.get("firstname").toString());
-				user.setLastname(currentUser.get("lastname").toString());
-				user.setEmail(currentUser.get("email").toString());
-				user.setMobile(currentUser.get("mobile").toString());
-				user.setTown(currentUser.get("town").toString());
-				Date dOB = new Date((Long)currentUser.get("dateOfBirth")*1000);
-				user.setDateOfBirth(dOB);
-				userList.add(user);
-			}
-            
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-		// TODO: Try to use the Guava Loading cache 
 		return userList;
 	}
+	
+
+	
+	private static Iterator<?> getJSONIterator() {
+		
+		JSONParser parser = new JSONParser();
+	
+        Object obj = null;
+		try {
+			obj = parser.parse(new FileReader("user.json"));
+		} catch (IOException | ParseException e) {
+			e.printStackTrace();
+		}
+
+        JSONArray userJSONArray = (JSONArray) obj;
+        Iterator<?> JSONIterator = userJSONArray.iterator();
+		
+		return JSONIterator;
+	}
+	
+	private static List<String> getUserIDs(Iterator<?> JSONIterator) {
+		
+		List<String> userIDs = new ArrayList<String>();
+		
+        while (JSONIterator.hasNext()) {
+			JSONObject currentUser = (JSONObject) JSONIterator.next();
+			userIDs.add(currentUser.get("id").toString());
+		}
+		
+		return userIDs;
+	}
+
+	private static User getFromDatabase(String userKey, Iterator<?> JSONIterator) {
+	
+	    Map<String, User> database = new HashMap<String, User>(); 
+	
+        while (JSONIterator.hasNext()) {
+			JSONObject currentUser = (JSONObject) JSONIterator.next();
+			User user = new User();
+			user.setId(currentUser.get("id").toString());
+			user.setFirstname(currentUser.get("firstname").toString());
+			user.setLastname(currentUser.get("lastname").toString());
+			user.setEmail(currentUser.get("email").toString());
+			user.setMobile(currentUser.get("mobile").toString());
+			user.setTown(currentUser.get("town").toString());
+			Date dOB = new Date((Long)currentUser.get("dateOfBirth")*1000);
+			user.setDateOfBirth(dOB);
+			database.put(user.getId(), user);
+		}
+	    
+	    return database.get(userKey);		
+	 }
 	
 	/**
 	 * This method should be called by loading cache to load the user from file
