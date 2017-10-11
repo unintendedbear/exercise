@@ -4,7 +4,13 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Date;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.Period;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -12,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.json.JSONException;
 import org.json.simple.JSONArray;
@@ -69,6 +76,7 @@ public class UserService {
 		         
 
 		      } catch (ExecutionException e) {
+		    	  System.out.println("No users were found in the cache");
 		         e.printStackTrace();
 		      }
 
@@ -119,7 +127,7 @@ public class UserService {
 			user.setEmail(currentUser.get("email").toString());
 			user.setMobile(currentUser.get("mobile").toString());
 			user.setTown(currentUser.get("town").toString());
-			Date dOB = new Date((Long)currentUser.get("dateOfBirth")*1000);
+			Date dOB = new Date((Long)currentUser.get("dateOfBirth"));
 			user.setDateOfBirth(dOB);
 			database.put(user.getId(), user);
 		}
@@ -147,18 +155,65 @@ public class UserService {
 	 */
 	public static List<GroupResult> loadSortedUserGroup() throws IOException, ParseException, JSONException{
 		
+		List<GroupResult> groupList = new ArrayList<GroupResult>();
 		// Step1: Load the users list
-		
-		// Step2: Sort the user list 
+		List<User> userList = new ArrayList<User>();
+		try {
+			userList = loadUser();
+		} catch (ExecutionException e) {
+			e.printStackTrace();
+		}
 
+		// Step2: Sort the user list
+		
 		// Write an algorithm here to sort the list of users 
 		// First based on the first name and then last name
 		// Eg. if the users are John Doe, John Wayne and Clint Eastwood, the list should be 
 		// 1.Clint Eastwood, 
 		// 2. John Doe
 		// 3. John Wayne 
+		Iterator<User> userIterator = userList.iterator(); // Obtaining all lastNames
+		List<String> lastNames = new ArrayList<String>();
+		while (userIterator.hasNext()) {
+			User user = userIterator.next();
+			lastNames.add(user.getLastname());
+		}
 		
-		return new ArrayList<>();
+		List<String> userLastNameDistinct = lastNames.stream().distinct().collect(Collectors.toList()); // Obtaining distinct lastNames
+		Collections.sort(userLastNameDistinct); // Sorting the last names so that groupList is created orderly
+		Iterator<String> lastNameIterator = userLastNameDistinct.iterator();
+		while (lastNameIterator.hasNext()) { // For each unique lastName
+			String lastName = lastNameIterator.next(); // Initialising GroupResult attributes
+			int adult = 0;
+			int children = 0;
+			userIterator = userList.iterator();
+			while (userIterator.hasNext()) { // For each user
+				User user = userIterator.next();
+				if (user.getLastname().contentEquals(lastName)) {
+					if (isAdult(user)) {
+						adult++;
+					} else {
+						children++;
+					}
+					userIterator.remove();
+				}
+			}
+			groupList.add(new GroupResult(lastName, adult, children)); // Adds resulting GroupResult to groupList
+		}
+		
+		return groupList;
+	}
+	
+	public static boolean isAdult(User user) {
+		
+		LocalDate today = LocalDate.now();
+		LocalDate userDayOfBirth = ( (java.sql.Date) user.getDateOfBirth()).toLocalDate();
+		int userAge = Period.between(userDayOfBirth, today).getYears();
+		if (userAge >= 18) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 	
 	/**
