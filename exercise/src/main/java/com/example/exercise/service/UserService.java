@@ -62,7 +62,7 @@ public class UserService {
 		            
 		            @Override
 		            public User load(String userKey) throws Exception {
-		               return getFromDatabase(userKey, getJSONIterator());
+		               return getUserListFromFile(userKey, getJSONIterator());
 		            } 
 		         });
 
@@ -83,9 +83,16 @@ public class UserService {
 		return userList;
 	}
 	
-
-	
+	// Read the file "user.json" and convert the JSON object into Java object
+	/**
+	 * Service to return an iterator over a JSON array, avoiding loading the file more than once 
+	 * @return
+	 * @throws IOException
+	 * @throws ParseException
+	 */
 	private static Iterator<?> getJSONIterator() {
+		
+		// Step1: Read the user.json file
 		
 		JSONParser parser = new JSONParser();
 	
@@ -102,6 +109,10 @@ public class UserService {
 		return JSONIterator;
 	}
 	
+	/**
+	 * Service to return a list of user ids 
+	 * @return
+	 */
 	private static List<String> getUserIDs(Iterator<?> JSONIterator) {
 		
 		List<String> userIDs = new ArrayList<String>();
@@ -114,9 +125,15 @@ public class UserService {
 		return userIDs;
 	}
 
-	private static User getFromDatabase(String userKey, Iterator<?> JSONIterator) {
+	/**
+	 * The most expensive service to obtain a user from the JSON
+	 * @return
+	 */
+	private static User getUserListFromFile(String userKey, Iterator<?> JSONIterator) {
+		
+		// Step2: Convert the user JSON string to java object
 	
-	    Map<String, User> database = new HashMap<String, User>(); 
+	    Map<String, User> usersJSON = new HashMap<String, User>(); 
 	
         while (JSONIterator.hasNext()) {
 			JSONObject currentUser = (JSONObject) JSONIterator.next();
@@ -129,10 +146,10 @@ public class UserService {
 			user.setTown(currentUser.get("town").toString());
 			Date dOB = new Date((Long)currentUser.get("dateOfBirth"));
 			user.setDateOfBirth(dOB);
-			database.put(user.getId(), user);
+			usersJSON.put(user.getId(), user);
 		}
 	    
-	    return database.get(userKey);		
+	    return usersJSON.get(userKey);		
 	 }
 	
 	/**
@@ -204,6 +221,10 @@ public class UserService {
 		return groupList;
 	}
 	
+	/**
+	 * Service to return if a user is an adult or not 
+	 * @return
+	 */
 	public static boolean isAdult(User user) {
 		
 		LocalDate today = LocalDate.now();
@@ -231,16 +252,5 @@ public class UserService {
 		// Step2. Filter the user based on email address, if more than one return the oldest
 		// TODO:_ Filter using email 
 		return null;
-	}
-	
-	
-	// Read the file "user.json" and convert the JSON object into Java object
-	private static final List<User> getUserListFromFile() throws IOException, ParseException, JSONException{
-		// Step1: Read the user.json file 
-		
-		// Step2: Convert the user JSON string to java object
-		// Hint: You can look at ObjectMapper provided by Jackson library
-		
-		return new ArrayList<User>();
 	}
 }
