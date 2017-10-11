@@ -1,21 +1,16 @@
 package com.example.exercise.service;
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Date;
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.Month;
 import java.time.Period;
-import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -26,13 +21,15 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import com.example.exercise.model.AgeGroup;
 import com.example.exercise.model.GroupResult;
 import com.example.exercise.model.User;
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.graph.Graph;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.Iterables;
 
 public class UserService {
 	
@@ -90,7 +87,7 @@ public class UserService {
 	 * @throws IOException
 	 * @throws ParseException
 	 */
-	private static Iterator<?> getJSONIterator() {
+	public static Iterator<?> getJSONIterator() {
 		
 		// Step1: Read the user.json file
 		
@@ -113,7 +110,7 @@ public class UserService {
 	 * Service to return a list of user ids 
 	 * @return
 	 */
-	private static List<String> getUserIDs(Iterator<?> JSONIterator) {
+	public static List<String> getUserIDs(Iterator<?> JSONIterator) {
 		
 		List<String> userIDs = new ArrayList<String>();
 		
@@ -129,7 +126,7 @@ public class UserService {
 	 * The most expensive service to obtain a user from the JSON
 	 * @return
 	 */
-	private static User getUserListFromFile(String userKey, Iterator<?> JSONIterator) {
+	public static User getUserListFromFile(String userKey, Iterator<?> JSONIterator) {
 		
 		// Step2: Convert the user JSON string to java object
 	
@@ -159,7 +156,7 @@ public class UserService {
 	 * @throws IOException
 	 * @throws ParseException
 	 */
-	public static List<User> loadUserIfCacheMiss() throws JSONException, IOException, ParseException{
+	public static List<User> loadUserIfCacheMiss() throws ExecutionException {
 		return new ArrayList<User>();
 	}
 	
@@ -170,7 +167,7 @@ public class UserService {
 	 * @throws ParseException
 	 * @throws JSONException
 	 */
-	public static List<GroupResult> loadSortedUserGroup() throws IOException, ParseException, JSONException{
+	public static List<GroupResult> loadSortedUserGroup() throws JSONException, IOException, ParseException, ExecutionException {
 		
 		List<GroupResult> groupList = new ArrayList<GroupResult>();
 		// Step1: Load the users list
@@ -207,7 +204,7 @@ public class UserService {
 			while (userIterator.hasNext()) { // For each user
 				User user = userIterator.next();
 				if (user.getLastname().contentEquals(lastName)) {
-					if (isAdult(user)) {
+					if (getUserAge(user) >= 18) {
 						adult++;
 					} else {
 						children++;
@@ -222,19 +219,14 @@ public class UserService {
 	}
 	
 	/**
-	 * Service to return if a user is an adult or not 
+	 * Service to return the age of a user 
 	 * @return
 	 */
-	public static boolean isAdult(User user) {
+	public static int getUserAge(User user) {
 		
 		LocalDate today = LocalDate.now();
 		LocalDate userDayOfBirth = ( (java.sql.Date) user.getDateOfBirth()).toLocalDate();
-		int userAge = Period.between(userDayOfBirth, today).getYears();
-		if (userAge >= 18) {
-			return true;
-		} else {
-			return false;
-		}
+		return Period.between(userDayOfBirth, today).getYears();
 	}
 	
 	/**
@@ -245,12 +237,27 @@ public class UserService {
 	 * @throws IOException 
 	 * @throws JSONException 
 	 */
-	public static User getUserByEmail(final String email) throws JSONException, IOException, ParseException {
+	public static User getUserByEmail(final String email) throws JSONException, IOException, ParseException, ExecutionException {
 		// Step1: Load the users
-		// TODO: write the code to load the users 
+		List<User> userList = new ArrayList<User>();
+		try {
+			userList = loadUser();
+		} catch (ExecutionException e) {
+			e.printStackTrace();
+		} 
 	
 		// Step2. Filter the user based on email address, if more than one return the oldest
-		// TODO:_ Filter using email 
-		return null;
+		List<User> foundUsers = userList.stream().filter(User->User.getEmail().contains(email)).collect(Collectors.toList());
+		User foundUser = null;
+		if (foundUsers.size() >= 1) {
+			foundUser = foundUsers.get(0);
+			for (User currentUser : foundUsers)  {
+				if (getUserAge(currentUser) > getUserAge(foundUser)) {
+					foundUser = currentUser;
+				}
+			}
+		}
+	
+		return foundUser;
 	}
 }
